@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAE2.04 — Explication ligne par ligne</title>
+<style>
+:root{
+  --bg:#0f172a; --card:#1e293b; --card2:#172033; --accent:#38bdf8; --accent2:#22c55e;
+  --text:#e2e8f0; --muted:#94a3b8; --border:#334155; --danger:#ef4444; --code:#0b1220;
+  --warn:#f59e0b;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  background:var(--bg); color:var(--text); line-height:1.5;
+  padding-bottom:4rem;
+}
+header{
+  background:linear-gradient(135deg,#0c1424,#162032);
+  padding:1.5rem 1.25rem; border-bottom:1px solid var(--border);
+  position:sticky; top:0; z-index:50;
+}
+header h1{font-size:1.25rem; color:var(--accent); margin-bottom:.25rem;}
+header p{color:var(--muted); font-size:.85rem;}
+nav{
+  display:flex; flex-wrap:wrap; gap:.4rem; margin-top:.9rem;
+}
+nav a{
+  background:var(--card); border:1px solid var(--border); color:var(--text);
+  padding:.4rem .7rem; border-radius:20px; font-size:.75rem; text-decoration:none;
+  white-space:nowrap;
+}
+nav a:hover{border-color:var(--accent); color:var(--accent);}
+main{max-width:980px; margin:0 auto; padding:1.25rem;}
+section{margin-bottom:2.5rem;}
+h2{
+  color:var(--accent); font-size:1.3rem; border-bottom:2px solid var(--border);
+  padding-bottom:.5rem; margin-bottom:1rem; scroll-margin-top:110px;
+}
+h3{color:#7dd3fc; font-size:1.05rem; margin:1.4rem 0 .6rem; scroll-margin-top:110px;}
+p{margin-bottom:.8rem; color:var(--text);}
+.muted{color:var(--muted);}
+.card{
+  background:var(--card); border:1px solid var(--border); border-radius:12px;
+  padding:1rem 1.1rem; margin-bottom:1rem;
+}
+.tag{
+  display:inline-block; background:rgba(56,189,248,.12); color:var(--accent);
+  border:1px solid rgba(56,189,248,.4); border-radius:6px; padding:.1rem .5rem;
+  font-size:.7rem; font-weight:600; margin-right:.3rem; vertical-align:middle;
+}
+.tag.warn{background:rgba(245,158,11,.12); color:var(--warn); border-color:rgba(245,158,11,.4);}
+.tag.bad{background:rgba(239,68,68,.12); color:var(--danger); border-color:rgba(239,68,68,.4);}
+.tag.good{background:rgba(34,197,94,.12); color:var(--accent2); border-color:rgba(34,197,94,.4);}
+pre{
+  background:var(--code); border:1px solid var(--border); border-radius:8px;
+  padding:.8rem; overflow-x:auto; font-size:.8rem; margin-bottom:.6rem;
+  -webkit-overflow-scrolling:touch;
+}
+code{font-family:"SF Mono",Consolas,Monaco,monospace; color:#a5f3fc;}
+pre code{color:#cbd5e1;}
+.ligne{
+  display:flex; gap:.7rem; border-left:3px solid var(--border);
+  padding:.55rem .7rem; margin-bottom:.4rem; background:var(--card2); border-radius:0 8px 8px 0;
+}
+.ligne.imp{border-left-color:var(--accent);}
+.ligne .no{
+  color:var(--muted); font-size:.7rem; min-width:2.6rem; padding-top:.15rem; flex-shrink:0;
+}
+.ligne .body code.src{
+  display:block; background:var(--code); padding:.4rem .5rem; border-radius:6px;
+  margin-bottom:.4rem; font-size:.78rem; overflow-x:auto; white-space:pre;
+}
+.ligne .exp{font-size:.85rem; color:var(--text);}
+.ligne .exp b{color:#7dd3fc;}
+details{
+  background:var(--card); border:1px solid var(--border); border-radius:10px;
+  margin-bottom:.7rem; overflow:hidden;
+}
+details summary{
+  padding:.7rem 1rem; cursor:pointer; font-weight:600; color:var(--text);
+  list-style:none; display:flex; align-items:center; gap:.5rem;
+}
+details summary::-webkit-details-marker{display:none;}
+details summary::before{content:"▸"; color:var(--accent); transition:.15s;}
+details[open] summary::before{transform:rotate(90deg);}
+details .inner{padding:0 1rem 1rem;}
+table{width:100%; border-collapse:collapse; font-size:.82rem; margin-bottom:1rem;}
+th,td{text-align:left; padding:.5rem .6rem; border-bottom:1px solid var(--border); vertical-align:top;}
+th{color:var(--muted); font-size:.7rem; text-transform:uppercase; background:var(--card2);}
+tr:hover td{background:rgba(56,189,248,.04);}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:1rem;}
+.flow{
+  display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin:1rem 0;
+}
+.flow .box{
+  background:var(--card2); border:1px solid var(--accent); border-radius:8px;
+  padding:.6rem .8rem; font-size:.8rem; text-align:center; flex:1; min-width:120px;
+}
+.flow .arrow{color:var(--accent); font-size:1.2rem;}
+.callout{
+  background:rgba(56,189,248,.07); border-left:3px solid var(--accent);
+  padding:.7rem .9rem; border-radius:0 8px 8px 0; font-size:.85rem; margin-bottom:1rem;
+}
+.callout.q{background:rgba(245,158,11,.08); border-left-color:var(--warn);}
+.callout.q b{color:var(--warn);}
+.top-btn{
+  position:fixed; bottom:1.2rem; right:1.2rem; background:var(--accent); color:#04263a;
+  border:none; border-radius:50%; width:46px; height:46px; font-size:1.1rem;
+  box-shadow:0 4px 12px rgba(0,0,0,.4); z-index:60; cursor:pointer;
+}
+@media (max-width:700px){
+  .grid2{grid-template-columns:1fr;}
+  header h1{font-size:1.05rem;}
+  main{padding:.8rem;}
+  .ligne{flex-direction:column;}
+  .ligne .no{min-width:auto;}
+  nav{gap:.3rem;}
+  nav a{font-size:.7rem; padding:.35rem .55rem;}
+  pre{font-size:.72rem;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🛰️ SAE2.04 — Maison connectée : explication complète du code</h1>
+  <p class="muted">Collecteur MQTT → Base MySQL → Application Django (affichage, filtres, graphique, export CSV)</p>
+  <nav>
+    <a href="#archi">Architecture</a>
+    <a href="#collecte">Collecte.py</a>
+    <a href="#models">models.py</a>
+    <a href="#views">views.py</a>
+    <a href="#urls">urls.py</a>
+    <a href="#settings">settings.py</a>
+    <a href="#templates">Templates HTML</a>
+    <a href="#sql">Fiche SQL (examen)</a>
+  </nav>
+</header>
+
+<main>
+
+<!-- ============================================================ -->
+<section id="archi">
+<h2>1. Vue d'ensemble — comment tout est relié</h2>
+<p>Le projet a <b>deux programmes complètement séparés</b> qui communiquent uniquement à travers la base de données MySQL. Ce n'est pas Django qui reçoit les données des capteurs : c'est un script Python indépendant (<code>collecte.py</code>) qui tourne en permanence sur un serveur et qui écrit dans la base. Django, lui, ne fait que <b>lire</b> (et un peu modifier) ce que ce script a déjà écrit.</p>
+
+<div class="flow">
+  <div class="box">📡 Capteur ESP32<br><span class="muted">envoie une trame</span></div>
+  <div class="arrow">→</div>
+  <div class="box">☁️ Broker MQTT<br><code>broker.hivemq.com</code></div>
+  <div class="arrow">→</div>
+  <div class="box">🐍 collecte.py<br><span class="muted">abonné aux topics</span></div>
+  <div class="arrow">→</div>
+  <div class="box">🗄️ MySQL<br>tables <code>capteur</code> / <code>mesure</code></div>
+  <div class="arrow">→</div>
+  <div class="box">🌐 Django (capteurs)<br><span class="muted">lit avec l'ORM</span></div>
+  <div class="arrow">→</div>
+  <div class="box">🖥️ Navigateur<br>templates HTML</div>
+</div>
+
+<div class="callout">
+<b>Le lien entre les deux projets</b> est uniquement la base de données MySQL. <code>collecte.py</code> fait des <code>INSERT</code> dans les tables <code>capteur</code> et <code>mesure</code>. Django (fichier <code>models.py</code>) déclare des classes Python qui correspondent <b>exactement</b> à ces deux mêmes tables (avec <code>managed = False</code>, ce qui dit à Django "je ne crée pas ces tables, elles existent déjà, je viens juste les lire/écrire"). Si demain on enlève <code>collecte.py</code>, le site Django continue de marcher mais ne reçoit plus de nouvelles données.
+</div>
+
+<table>
+<tr><th>Élément</th><th>Rôle</th><th>Technologie</th></tr>
+<tr><td>ESP32 (capteur)</td><td>Mesure la température et publie une trame texte sur le réseau MQTT</td><td>Microcontrôleur (hors zip)</td></tr>
+<tr><td><code>collecte.py</code></td><td>Écoute le broker MQTT, parse les trames, écrit en base MySQL</td><td>Python + paho-mqtt + PyMySQL</td></tr>
+<tr><td>Base MySQL</td><td>Stocke durablement les capteurs et leurs mesures</td><td>MySQL, tables <code>capteur</code> / <code>mesure</code></td></tr>
+<tr><td>App Django <code>capteurs</code></td><td>Lit la base, applique des filtres, affiche tableau + graphique, permet l'édition/suppression et l'export CSV</td><td>Django (ORM, vues, templates)</td></tr>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<section id="collecte">
+<h2>2. Collecte.py — le script qui récupère les données MQTT</h2>
+
+<div class="callout q">
+<b>Question piège probable du prof : "il y a une fonction asynchrone, comment ça marche ?"</b><br>
+En réalité il n'y a <u>aucun</u> <code>async def</code> / <code>await</code> dans ce code (pas de vraie programmation asynchrone Python). Ce qui se passe et qui ressemble à de l'asynchrone, c'est le <b>modèle événementiel par callbacks</b> de la librairie <code>paho-mqtt</code> : le programme ne demande pas activement "y a-t-il un message ?" en boucle. Il <b>s'abonne</b> une fois, puis lance <code>client.loop_forever()</code> qui bloque le programme et attend. Quand un message arrive sur le réseau, la librairie <b>appelle automatiquement</b> la fonction <code>on_message</code> — c'est ça la logique "asynchrone" / événementielle : le code ne s'exécute pas dans l'ordre du fichier, il s'exécute <b>en réaction à un évènement réseau</b>, à un moment imprévisible. Dis bien ça au prof : "ce n'est pas de l'asyncio, c'est un système de callbacks déclenchés par le réseau".
+</div>
+
+<h3>2.1 — En-tête, imports et configuration</h3>
+<div class="ligne imp"><div class="no">1-5</div><div class="body">
+<code class="src">#!/usr/bin/env python3
+#  Dependances :  pip install paho-mqtt PyMySQL
+#  Lancement   :  python3 collecte.py</code>
+<div class="exp">Commentaires d'en-tête. La ligne 1 (<b>shebang</b>) permet de lancer le script directement avec <code>./main.py</code> sous Linux. Les autres lignes sont juste de la documentation pour rappeler les dépendances à installer.</div>
+</div></div>
+
+<div class="ligne"><div class="no">7-9</div><div class="body">
+<code class="src">import json
+import os
+from datetime import datetime</code>
+<div class="exp"><b>json</b> : pour écrire/lire le fichier de cache (<code>cache.jsonl</code>) au format JSON. <b>os</b> : pour vérifier si le fichier cache existe (<code>os.path.exists</code>) et le supprimer (<code>os.remove</code>). <b>datetime</b> : pour transformer le texte "date + heure" reçu par MQTT en un vrai timestamp utilisable par MySQL.</div>
+</div></div>
+
+<div class="ligne imp"><div class="no">11-12</div><div class="body">
+<code class="src">import paho.mqtt.client as mqtt
+import pymysql</code>
+<div class="exp"><b>paho-mqtt</b> = la librairie cliente MQTT (protocole de messagerie pub/sub léger, fait pour l'IoT). <b>pymysql</b> = un connecteur Python → MySQL <u>pur Python</u> (pas besoin de compiler du code C), qui permet d'exécuter des requêtes SQL directement depuis Python.</div>
+</div></div>
+
+<div class="ligne"><div class="no">15-20</div><div class="body">
+<code class="src">BROKER = "broker.hivemq.com"
+PORT = 1883
+TOPICS = [
+    "IUT/Colmar2026/SAE2.04/Maison1",
+    "IUT/Colmar2026/SAE2.04/Maison2",
+]</code>
+<div class="exp">Le <b>broker</b> est le serveur central MQTT public (gratuit, utilisé pour les tests) sur lequel tout le monde se connecte. Le <b>port 1883</b> est le port standard MQTT non chiffré. Les <b>topics</b> sont les "canaux" auxquels on s'abonne : ici il y a 2 maisons simulées, chacune avec son propre canal. C'est exactement comme s'abonner à 2 chaînes différentes : tout message publié sur "Maison1" sera reçu par ce script.</div>
+</div></div>
+
+<div class="ligne imp"><div class="no">22</div><div class="body">
+<code class="src">from config import DB</code>
+<div class="exp">Importe un dictionnaire <code>DB</code> (hôte, utilisateur, mot de passe, nom de la base) depuis un fichier <code>config.py</code> séparé qui <b>n'est pas dans le zip</b> (volontairement, pour ne pas exposer le mot de passe MySQL sur GitHub — il est dans le <code>.gitignore</code>). Ce dictionnaire est ensuite passé à <code>pymysql.connect(**DB)</code> ligne 67.</div>
+</div></div>
+
+<div class="ligne"><div class="no">24-25</div><div class="body">
+<code class="src">CACHE = "cache.jsonl"
+_conn = None</code>
+<div class="exp"><code>CACHE</code> : nom du fichier local qui sert de "boîte d'attente" si la base est inaccessible. <code>_conn</code> : variable <b>globale</b> qui garde la connexion MySQL ouverte entre deux messages reçus (pour ne pas se reconnecter à chaque message, ce qui serait lent).</div>
+</div></div>
+
+<h3>2.2 — parse_message() : transformer le texte brut en données utilisables</h3>
+<div class="ligne imp"><div class="no">32-57</div><div class="body">
+<code class="src">def parse_message(payload: str) -> dict:
+    brut = {}
+    derniere_cle = None
+    for morceau in payload.split(","):
+        if "=" in morceau:
+            cle, valeur = morceau.split("=", 1)
+            brut[cle] = valeur
+            derniere_cle = cle
+        elif derniere_cle is not None:
+            brut[derniere_cle] = brut[derniere_cle] + "." + morceau</code>
+<div class="exp">La trame envoyée par le capteur ressemble à : <code>Id=12A6B8AF6CD3,piece=sejour,date=15/06/2026,heure=12:13:14,temp=26,35</code>. Le problème : <b>la température utilise une virgule comme séparateur décimal</b> (<code>26,35</code> au lieu de <code>26.35</code>), alors que la trame entière est aussi séparée par des virgules ! Donc <code>payload.split(",")</code> va casser "26,35" en deux morceaux : "temp=26" et "35".<br><br>
+La boucle reconstruit ça intelligemment : <b>pour chaque morceau</b>, si on trouve un <code>=</code>, c'est une nouvelle clé (ex: <code>temp</code> → <code>26</code>), et on retient cette clé dans <code>derniere_cle</code>. Si le morceau <b>n'a pas de <code>=</code></b> (cas du "35" tout seul), ça veut dire que c'est la suite de la valeur précédente : on le recolle avec un point, ce qui transforme "26" en "26.35" — la bonne notation décimale Python/SQL.</div>
+</div></div>
+
+<div class="ligne"><div class="no">49-57</div><div class="body">
+<code class="src">heure = brut.get('heure') or brut.get('time')
+dt = datetime.strptime(f"{brut['date']} {heure}", "%d/%m/%Y %H:%M:%S")
+return {
+    "id": brut["Id"],
+    "piece": brut["piece"],
+    "timestamp": dt.strftime("%Y-%m-%d %H:%M:%S"),
+    "temperature": float(brut["temp"]),
+}</code>
+<div class="exp"><code>brut.get('heure') or brut.get('time')</code> : gère le fait que selon le capteur, la clé peut s'appeler "heure" ou "time" (tolérance aux variantes). <code>datetime.strptime(...)</code> : convertit le texte "15/06/2026 12:13:14" (format français, jour/mois/année) en un véritable objet date Python. <code>.strftime("%Y-%m-%d %H:%M:%S")</code> : le reconvertit en texte mais cette fois au <b>format MySQL standard</b> (année-mois-jour), qui est le seul format que la colonne <code>TIMESTAMP</code>/<code>DATETIME</code> de MySQL accepte sans ambiguïté. Le dictionnaire final est "propre" et normalisé, prêt pour la base.</div>
+</div></div>
+
+<h3>2.3 — Accès base de données : get_connexion() et inserer_mesure()</h3>
+<div class="ligne imp"><div class="no">63-73</div><div class="body">
+<code class="src">def get_connexion():
+    global _conn
+    try:
+        if _conn is None:
+            _conn = pymysql.connect(**DB)
+        else:
+            _conn.ping(reconnect=True)
+        return _conn
+    except pymysql.MySQLError:
+        _conn = None
+        return None</code>
+<div class="exp">Fonction de <b>résilience réseau</b>. <code>global _conn</code> permet de modifier la variable globale définie ligne 25. Si on n'a jamais de connexion (<code>None</code>), on en crée une nouvelle. Si on en a déjà une, <code>.ping(reconnect=True)</code> vérifie qu'elle est toujours vivante et la rouvre automatiquement si le serveur MySQL a coupé la connexion (timeout, redémarrage...). Si ça plante quand même (<code>MySQLError</code>), on remet <code>_conn</code> à <code>None</code> et on retourne <code>None</code> → le code appelant comprendra "la base est injoignable" et passera en mode cache.</div>
+</div></div>
+
+<div class="ligne"><div class="no">76-92</div><div class="body">
+<code class="src">def inserer_mesure(conn, m: dict):
+    with conn.cursor() as cur:
+        cur.execute("SELECT id FROM capteur WHERE id = %s", (m["id"],))
+        existe = cur.fetchone()
+        if existe is None:
+            cur.execute(
+                "INSERT INTO capteur (id, nom, piece, emplacement) "
+                "VALUES (%s, %s, %s, %s)",
+                (m["id"], m["id"], m["piece"], m["piece"]),
+            )
+        cur.execute(
+            "INSERT INTO mesure (capteur_id, timestamp, temperature) "
+            "VALUES (%s, %s, %s)",
+            (m["id"], m["timestamp"], m["temperature"]),
+        )
+    conn.commit()</code>
+<div class="exp">C'est ici que les <b>requêtes SQL brutes</b> (pas d'ORM, contrairement à Django) sont exécutées. <code>conn.cursor()</code> ouvre un curseur (l'objet qui exécute des requêtes). <b>Étape 1</b> : <code>SELECT id FROM capteur WHERE id = %s</code> vérifie si ce capteur existe déjà dans la table <code>capteur</code> (table "catalogue" des capteurs connus). <code>%s</code> est un <b>paramètre préparé</b> : PyMySQL remplace ça par la vraie valeur de façon sécurisée, ce qui protège contre les injections SQL (jamais de concaténation de chaîne directe). <b>Étape 2</b> : si <code>existe is None</code> (capteur jamais vu), on l'<code>INSERT</code> dans <code>capteur</code> en utilisant l'ID comme nom et la pièce comme emplacement par défaut (valeurs provisoires, modifiables ensuite depuis Django). <b>Étape 3</b> : dans tous les cas, on insère la nouvelle mesure dans la table <code>mesure</code>, reliée au capteur via la colonne <code>capteur_id</code> (clé étrangère). <code>conn.commit()</code> valide définitivement la transaction (sans ça, MySQL annulerait tout à la fermeture).</div>
+</div></div>
+
+<h3>2.4 — Le cache local (anti-perte de données)</h3>
+<div class="ligne"><div class="no">98-116</div><div class="body">
+<code class="src">def mettre_en_cache(m: dict):
+    with open(CACHE, "a", encoding="utf-8") as f:
+        f.write(json.dumps(m) + "\n")
+
+def vider_cache(conn):
+    if not os.path.exists(CACHE):
+        return
+    with open(CACHE, encoding="utf-8") as f:
+        en_attente = [json.loads(ligne) for ligne in f if ligne.strip()]
+    if not en_attente:
+        return
+    for m in en_attente:
+        inserer_mesure(conn, m)
+    os.remove(CACHE)</code>
+<div class="exp">Mécanisme de tolérance aux pannes : si MySQL est temporairement injoignable (réseau coupé, serveur en maintenance), on ne perd pas la mesure. <code>mettre_en_cache</code> l'ajoute en mode <b>append</b> (<code>"a"</code>) à un fichier texte, une ligne JSON par mesure (format <b>JSON Lines</b>, pratique car on peut ajouter sans relire tout le fichier). <code>vider_cache</code> fait l'inverse : à la reconnexion, elle relit toutes les lignes en attente, les réinsère une par une avec <code>inserer_mesure</code>, puis <b>supprime le fichier</b> cache une fois tout rejoué — pour ne pas les réinsérer deux fois la prochaine fois.</div>
+</div></div>
+
+<h3>2.5 — Les callbacks MQTT (le coeur de la logique "événementielle")</h3>
+<div class="ligne imp"><div class="no">122-129</div><div class="body">
+<code class="src">def on_connect(client, userdata, flags, reason_code, properties):
+    if reason_code == 0:
+        for topic in TOPICS:
+            client.subscribe(topic)
+    else:
+        print(f"Echec de connexion (code {reason_code})")</code>
+<div class="exp">Cette fonction n'est <b>jamais appelée directement</b> par nous : on la "branche" plus loin (ligne 162) avec <code>client.on_connect = on_connect</code>. La librairie paho-mqtt l'appelle <b>automatiquement</b> dès que la connexion TCP au broker réussit. <code>reason_code == 0</code> signifie "succès" (norme MQTT). Si succès, on s'abonne (<code>subscribe</code>) à chaque topic de la liste — c'est seulement <b>après</b> cet abonnement qu'on commencera à recevoir des messages.</div>
+</div></div>
+
+<div class="ligne imp"><div class="no">132-154</div><div class="body">
+<code class="src">def on_message(client, userdata, msg):
+    payload = msg.payload.decode("utf-8", errors="ignore").strip()
+    try:
+        m = parse_message(payload)
+    except (KeyError, ValueError) as e:
+        print(f"Trame ignoree ({e}) : {payload}")
+        return
+    ...
+    conn = get_connexion()
+    if conn is not None:
+        try:
+            vider_cache(conn)
+            inserer_mesure(conn, m)
+        except pymysql.MySQLError as e:
+            mettre_en_cache(m)
+    else:
+        mettre_en_cache(m)</code>
+<div class="exp"><b>C'est LA fonction "callback" qui se déclenche toute seule à chaque message MQTT reçu</b> — c'est elle qui justifie le comportement "asynchrone". <code>msg.payload</code> arrive en <b>bytes</b> (octets bruts du réseau), donc <code>.decode("utf-8")</code> le convertit en texte lisible. On essaie de parser la trame ; si elle est mal formée (clé manquante = <code>KeyError</code>, ou date invalide = <code>ValueError</code>), on l'ignore proprement plutôt que de crasher tout le programme. Ensuite on tente la base : si elle répond (<code>conn is not None</code>), on vide d'abord le cache en attente (pour respecter l'ordre chronologique), puis on insère la mesure du jour. Si la base ne répond pas <b>ou</b> qu'une erreur survient pendant l'insertion, la mesure part au cache pour être rejouée plus tard. Aucune mesure n'est donc jamais perdue.</div>
+</div></div>
+
+<h3>2.6 — main() : démarrage et boucle infinie</h3>
+<div class="ligne imp"><div class="no">160-177</div><div class="body">
+<code class="src">def main():
+    client = mqtt.Client(callback_api_version=mqtt.CallbackAPIVersion.VERSION2)
+    client.on_connect = on_connect
+    client.on_message = on_message
+    client.reconnect_delay_set(min_delay=1, max_delay=30)
+    client.connect(BROKER, PORT, keepalive=60)
+    try:
+        client.loop_forever()
+    except KeyboardInterrupt:
+        print("Arret demande par l'utilisateur.")
+    finally:
+        client.disconnect()
+        if _conn is not None:
+            _conn.close()</code>
+<div class="exp">On crée l'objet client MQTT, puis on lui "branche" nos deux fonctions définies plus haut sur les évènements correspondants (<code>on_connect</code> / <code>on_message</code>) — c'est de l'<b>inversion de contrôle</b> : ce n'est pas nous qui appelons ces fonctions, c'est la librairie, quand elle juge que l'évènement s'est produit. <code>reconnect_delay_set</code> configure une reconnexion automatique avec un délai croissant (1s, puis jusqu'à 30s max) en cas de coupure réseau. <code>client.connect(...)</code> initie la connexion TCP. <code>client.loop_forever()</code> est une <b>boucle bloquante</b> : le programme s'arrête ici et attend indéfiniment, en laissant la librairie gérer la réception réseau et déclencher les callbacks en arrière-plan — c'est ce blocage volontaire + déclenchement différé qui donne l'<b>impression</b> d'asynchrone, même si techniquement c'est du code synchrone classique avec des callbacks. <code>KeyboardInterrupt</code> capture le Ctrl+C pour fermer proprement (déconnexion MQTT + fermeture de la connexion MySQL) au lieu de planter brutalement.</div>
+</div></div>
+</section>
+
+<!-- ============================================================ -->
+<section id="models">
+<h2>3. models.py — la correspondance Python ↔ tables MySQL (ORM)</h2>
+<p>Django utilise un <b>ORM</b> (Object-Relational Mapping) : chaque <b>classe</b> Python représente une <b>table</b> SQL, chaque <b>attribut</b> représente une <b>colonne</b>. On écrit du Python, Django génère le SQL tout seul.</p>
+
+<div class="ligne imp"><div class="no">4-15</div><div class="body">
+<code class="src">class Capteur(models.Model):
+    id = models.CharField(max_length=20, primary_key=True)
+    nom = models.CharField(max_length=50, unique=True)
+    piece = models.CharField(max_length=50)
+    emplacement = models.CharField(max_length=100)
+
+    class Meta:
+        managed = False
+        db_table = "capteur"</code>
+<div class="exp">Représente la table <code>capteur</code>. <code>id</code> est une chaîne (l'adresse MAC du capteur, ex: "12A6B8AF6CD3") utilisée comme <b>clé primaire</b> (<code>primary_key=True</code>) — donc pas d'auto-incrément ici, c'est l'ID matériel du capteur qui sert d'identifiant unique. <code>nom</code> est <code>unique=True</code> : deux capteurs ne peuvent pas avoir le même nom (vérifié au niveau base de données). <b><code>managed = False</code></b> est crucial : ça dit à Django "ne touche jamais à la structure de cette table (pas de migration <code>CREATE TABLE</code>/<code>ALTER TABLE</code>), elle est déjà créée et gérée manuellement en SQL". <code>db_table = "capteur"</code> précise le nom exact de la table en base (sinon Django aurait cherché <code>capteurs_capteur</code> par convention).</div>
+</div></div>
+
+<div class="ligne imp"><div class="no">18-31</div><div class="body">
+<code class="src">class Mesure(models.Model):
+    id = models.AutoField(primary_key=True)
+    capteur = models.ForeignKey(
+        Capteur, on_delete=models.CASCADE, db_column="capteur_id"
+    )
+    timestamp = models.DateTimeField()
+    temperature = models.DecimalField(max_digits=5, decimal_places=2)
+
+    class Meta:
+        managed = False
+        db_table = "mesure"</code>
+<div class="exp">Représente la table <code>mesure</code> (une ligne = une température mesurée à un instant donné). <code>AutoField</code> = clé primaire auto-incrémentée classique (1, 2, 3...). <code>ForeignKey(Capteur, ...)</code> crée le <b>lien relationnel</b> : chaque mesure appartient à <u>un seul</u> capteur, mais un capteur peut avoir <u>plusieurs</u> mesures (relation <b>1-à-plusieurs</b>). <code>db_column="capteur_id"</code> précise que la colonne SQL réelle s'appelle <code>capteur_id</code> (convention Django par défaut de toute façon, mais explicité ici). <code>on_delete=models.CASCADE</code> : si on supprime un capteur, <b>toutes ses mesures sont supprimées automatiquement</b> par la base — c'est exactement ce qui se passe dans <code>views.py</code> ligne 109 (<code>capteur.delete()</code>) : Django/MySQL nettoie tout en cascade, on n'a rien à faire de plus. <code>DecimalField(max_digits=5, decimal_places=2)</code> : un nombre décimal précis à 2 chiffres après la virgule (ex: 26.35), avec maximum 5 chiffres au total — plus fiable qu'un <code>float</code> pour des valeurs scientifiques stockées en base (pas d'erreur d'arrondi binaire).</div>
+</div></div>
+
+<div class="callout">
+<b>Pourquoi <code>managed = False</code> partout ?</b> Parce que c'est <code>collecte.py</code> (et le SQL manuel du groupe) qui a créé les tables avant même que Django existe sur le projet. Django n'a donc jamais eu besoin de migration <code>CREATE TABLE</code> — d'où l'absence de fichiers de migration utiles dans <code>capteurs/migrations/</code> (juste un <code>__init__.py</code> vide).
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="views">
+<h2>4. views.py — la logique métier (filtres, calculs, export)</h2>
+
+<h3>4.1 — appliquer_filtres() : le moteur de recherche/filtre, partagé partout</h3>
+<div class="ligne imp"><div class="no">12-21</div><div class="body">
+<code class="src">def appliquer_filtres(request):
+    mesures = Mesure.objects.select_related("capteur").all()
+
+    capteur = request.GET.get("capteur", "").strip()
+    if capteur:
+        mesures = mesures.filter(
+            Q(capteur__id__icontains=capteur)
+            | Q(capteur__nom__icontains=capteur)
+            | Q(capteur__piece__icontains=capteur)
+        )</code>
+<div class="exp"><code>Mesure.objects.all()</code> = équivalent ORM de <code>SELECT * FROM mesure</code>. <code>.select_related("capteur")</code> est une <b>optimisation</b> : sans ça, Django ferait 1 requête pour les mesures puis 1 requête <u>par ligne</u> pour récupérer le capteur correspondant (problème "N+1 requêtes"). Avec <code>select_related</code>, Django fait une seule requête avec un <code>JOIN</code> SQL — beaucoup plus rapide.<br><br>
+<code>request.GET.get("capteur", "")</code> récupère le paramètre d'URL <code>?capteur=...</code> (ce qui a été tapé dans le champ de recherche). <code>Q(...)</code> permet de combiner plusieurs conditions avec un <b>OU logique</b> (<code>|</code>) — ici on cherche le texte dans l'ID, le nom, OU la pièce. <code>icontains</code> = "contient, insensible à la casse" → équivalent SQL <code>LIKE '%valeur%'</code> en ignorant majuscules/minuscules. Le double underscore <code>capteur__id</code> signifie "traverse la relation capteur, puis prends sa colonne id" (équivalent d'un <code>JOIN</code> + filtre sur la table jointe).</div>
+</div></div>
+
+<div class="ligne"><div class="no">23-43</div><div class="body">
+<code class="src">date_debut = request.GET.get("date_debut", "").strip()
+if date_debut:
+    mesures = mesures.filter(timestamp__date__gte=date_debut)
+
+date_fin = request.GET.get("date_fin", "").strip()
+if date_fin:
+    mesures = mesures.filter(timestamp__date__lte=date_fin)
+
+temp_min = request.GET.get("temp_min", "").strip()
+if temp_min:
+    try:
+        mesures = mesures.filter(temperature__gte=float(temp_min))
+    except ValueError:
+        pass</code>
+<div class="exp">Filtres de plage. <code>timestamp__date__gte</code> = "la partie date du timestamp est supérieure ou égale à" (équivalent SQL <code>WHERE DATE(timestamp) >= '...'</code>). <code>__lte</code> = inférieur ou égal. Même logique pour <code>temperature__gte</code> / <code>__lte</code> (température min/max). Le <code>try/except ValueError: pass</code> protège contre une entrée invalide (texte non numérique tapé dans le champ température) : au lieu de planter, le filtre est simplement ignoré silencieusement.</div>
+</div></div>
+
+<div class="ligne"><div class="no">45-54</div><div class="body">
+<code class="src">tris_valides = {
+    "date": "timestamp",
+    "temperature": "temperature",
+    "capteur": "capteur__id",
+    "nom": "capteur__nom",
+    "piece": "capteur__piece",
+}
+tri = tris_valides.get(request.GET.get("tri", "date"), "timestamp")
+ordre = "" if request.GET.get("ordre", "desc") == "asc" else "-"
+return mesures.order_by(f"{ordre}{tri}")</code>
+<div class="exp"><b>Sécurité importante</b> : on ne fait jamais directement <code>order_by(request.GET.get("tri"))</code>, car ça permettrait à un utilisateur malveillant de trier sur n'importe quel champ caché ou de causer une erreur. À la place, on utilise un <b>dictionnaire blanc-liste</b> (<code>tris_valides</code>) : seules les 5 clés autorisées peuvent être utilisées, sinon ça retombe sur <code>"timestamp"</code> par défaut. Le préfixe <code>"-"</code> devant le nom de colonne en Django signifie "ordre décroissant" (le signe <code>-</code> est la syntaxe Django pour <code>ORDER BY ... DESC</code>), une chaîne vide donne l'ordre croissant (<code>ASC</code>).</div>
+</div></div>
+
+<h3>4.2 — _points_graphe() : préparer les données pour Chart.js</h3>
+<div class="ligne"><div class="no">57-67</div><div class="body">
+<code class="src">def _points_graphe(mesures, max_points=120):
+    points = list(mesures.order_by("timestamp"))
+    n = len(points)
+    if n > max_points:
+        pas = n // max_points
+        points = points[::pas][-max_points:]
+    return (
+        [p.timestamp.strftime("%d/%m %H:%M") for p in points],
+        [float(p.temperature) for p in points],
+    )</code>
+<div class="exp">S'il y a 5000 mesures, afficher 5000 points sur un graphique serait illisible et lent à dessiner. Cette fonction fait un <b>sous-échantillonnage</b> ("downsampling") : si on a plus de 120 points, on calcule un <code>pas</code> (par exemple si n=1200, pas=10) et on ne garde qu'1 point sur 10 (<code>points[::pas]</code>, slicing Python avec un pas). <code>[-max_points:]</code> garantit qu'on ne dépasse jamais 120 points au final même après l'échantillonnage. La fonction renvoie un <b>tuple de deux listes parallèles</b> : les labels (dates formatées en texte) pour l'axe X, et les valeurs numériques pour l'axe Y — exactement ce que Chart.js attend en entrée.</div>
+</div></div>
+
+<h3>4.3 — liste() : la page principale</h3>
+<div class="ligne imp"><div class="no">73-98</div><div class="body">
+<code class="src">def liste(request):
+    mesures = appliquer_filtres(request)
+    moyenne = mesures.aggregate(m=Avg("temperature"))["m"]
+    labels, valeurs = _points_graphe(mesures)
+    ...
+    return render(request, "capteurs/liste.html", {
+        "mesures": mesures[:500],
+        "total_mesures": mesures.count(),
+        "moyenne": moyenne,
+        "capteurs": Capteur.objects.all(),
+        "labels": json.dumps(labels),
+        "valeurs": json.dumps(valeurs),
+        ...
+    })</code>
+<div class="exp">C'est la vue branchée sur la page d'accueil (<code>urls.py</code>, <code>path("", views.liste, name="liste")</code>). On part toujours du <b>même</b> jeu filtré (<code>appliquer_filtres</code>), pour garantir la cohérence entre tableau, statistiques et graphique. <code>.aggregate(m=Avg("temperature"))</code> = équivalent SQL <code>SELECT AVG(temperature) AS m FROM ...</code> appliqué <b>aux mêmes filtres</b> (donc la moyenne affichée correspond bien à ce qui est filtré, pas à toute la base). <code>mesures[:500]</code> = limite Python/SQL à 500 lignes affichées (équivalent <code>LIMIT 500</code>) pour ne pas surcharger la page, alors que <code>.count()</code> donne le <b>vrai total</b> filtré (même s'il dépasse 500) pour informer l'utilisateur. <code>render(...)</code> assemble le template HTML avec ce <b>contexte</b> (dictionnaire de variables) — c'est ce dictionnaire qui devient accessible dans le template via <code>{{ moyenne }}</code>, <code>{{ mesures }}</code>, etc. <code>json.dumps(labels)</code> convertit la liste Python en texte JSON valide, injectable directement dans une balise <code>&lt;script&gt;</code> du template (voir <code>liste.html</code> ligne 103).</div>
+</div></div>
+
+<h3>4.4 — detail() : fiche d'un capteur (lecture, édition, suppression)</h3>
+<div class="ligne imp"><div class="no">104-120</div><div class="body">
+<code class="src">def detail(request, capteur_id):
+    capteur = get_object_or_404(Capteur, id=capteur_id)
+
+    if request.method == "POST":
+        if "supprimer" in request.POST:
+            capteur.delete()
+            return redirect("liste")
+
+        nouveau_nom = request.POST.get("nom", "").strip()
+        nouvel_emplacement = request.POST.get("emplacement", "").strip()
+        if nouveau_nom:
+            capteur.nom = nouveau_nom
+        if nouvel_emplacement:
+            capteur.emplacement = nouvel_emplacement
+        capteur.save(update_fields=["nom", "emplacement"])
+        return redirect("detail", capteur_id=capteur.id)</code>
+<div class="exp"><code>capteur_id</code> vient directement de l'URL (voir <code>urls.py</code> : <code>path("capteur/&lt;str:capteur_id&gt;/", ...)</code>). <code>get_object_or_404</code> = équivalent <code>SELECT * FROM capteur WHERE id = ... LIMIT 1</code>, mais si rien n'est trouvé, Django renvoie automatiquement une page d'erreur 404 au lieu de planter.<br><br>
+<b>Distinction GET / POST</b> : un <code>GET</code> simple = on veut juste <b>voir</b> la page (pas de modification). Un <code>POST</code> = le formulaire HTML a été soumis (bouton "Enregistrer" ou "Supprimer" cliqué). <code>"supprimer" in request.POST</code> teste si le bouton qui a été cliqué portait l'attribut <code>name="supprimer"</code> (voir <code>detail.html</code> ligne 30) : si oui, <code>capteur.delete()</code> supprime la ligne dans <code>capteur</code> — et grâce au <code>on_delete=CASCADE</code> du modèle, MySQL supprime <b>aussi automatiquement</b> toutes les mesures liées. <code>redirect("liste")</code> renvoie ensuite vers la page d'accueil (pattern <b>POST/Redirect/GET</b> : on ne reste jamais sur une page après un POST, pour éviter qu'un rafraîchissement du navigateur ne resoumette le formulaire deux fois).<br><br>
+Si ce n'est pas une suppression, on met à jour le nom/emplacement <b>seulement si le champ n'est pas vide</b> (sinon on écraserait avec une valeur vide par erreur). <code>save(update_fields=[...])</code> est une optimisation : ça génère un <code>UPDATE</code> SQL qui ne touche <b>que</b> ces deux colonnes, pas toutes (plus rapide, évite des conflits si une autre colonne a été modifiée entre-temps par <code>collecte.py</code>).</div>
+</div></div>
+
+<div class="ligne"><div class="no">122-133</div><div class="body">
+<code class="src">mesures = Mesure.objects.filter(capteur=capteur).order_by("-timestamp")
+moyenne = mesures.aggregate(m=Avg("temperature"))["m"]
+labels, valeurs = _points_graphe(mesures)
+
+return render(request, "capteurs/detail.html", {...})</code>
+<div class="exp">Cette partie ne s'exécute que si la requête est un <code>GET</code> (affichage simple) — toutes les mesures de <b>ce capteur précis</b>, triées de la plus récente à la plus ancienne (<code>-timestamp</code>). Même logique de moyenne et de graphique que dans <code>liste()</code>, mais limitée à un seul capteur au lieu de tous.</div>
+</div></div>
+
+<h3>4.5 — export_csv() : téléchargement des données filtrées</h3>
+<div class="ligne"><div class="no">139-150</div><div class="body">
+<code class="src">def export_csv(request):
+    mesures = appliquer_filtres(request)
+    reponse = HttpResponse(content_type="text/csv")
+    reponse["Content-Disposition"] = 'attachment; filename="mesures.csv"'
+    writer = csv.writer(reponse)
+    writer.writerow(["capteur_id", "nom", "piece", "timestamp", "temperature"])
+    for m in mesures:
+        writer.writerow([m.capteur_id, m.capteur.nom, m.capteur.piece, m.timestamp, m.temperature])
+    return reponse</code>
+<div class="exp">Réutilise encore <code>appliquer_filtres</code> : l'export respecte les mêmes filtres actifs au moment du clic (voir le lien dans <code>liste.html</code> qui transmet les mêmes paramètres GET). <code>HttpResponse(content_type="text/csv")</code> crée une réponse HTTP qui n'est pas une page HTML mais un fichier. L'en-tête <code>Content-Disposition: attachment; filename=...</code> dit au navigateur "ne l'affiche pas, télécharge-le sous ce nom". <code>csv.writer(reponse)</code> écrit directement dans la réponse HTTP comme si c'était un fichier classique. On écrit d'abord la ligne d'en-tête (noms de colonnes), puis on boucle sur chaque mesure filtrée pour écrire une ligne CSV par mesure.</div>
+</div></div>
+</section>
+
+<!-- ============================================================ -->
+<section id="urls">
+<h2>5. urls.py — le routage (quelle URL va vers quelle vue)</h2>
+<div class="grid2">
+<div class="card">
+<h3 style="margin-top:0">Projet : <code>Sae_projet_integratif/urls.py</code></h3>
+<pre><code>urlpatterns = [
+    path("admin/", admin.site.urls),
+    path("", include("capteurs.urls")),
+]</code></pre>
+<p class="exp">Le fichier racine. <code>admin/</code> donne accès à l'interface d'administration Django auto-générée. <code>include("capteurs.urls")</code> délègue <b>toutes les autres URLs</b> au fichier de l'application <code>capteurs</code> — c'est une organisation modulaire classique en Django (le projet ne connaît que ses apps, chaque app gère ses propres routes).</p>
+</div>
+<div class="card">
+<h3 style="margin-top:0">App : <code>capteurs/urls.py</code></h3>
+<pre><code>urlpatterns = [
+    path("", views.liste, name="liste"),
+    path("export/csv/", views.export_csv, name="export_csv"),
+    path("capteur/&lt;str:capteur_id&gt;/", views.detail, name="detail"),
+]</code></pre>
+<p class="exp"><code>path("", views.liste, name="liste")</code> : la racine du site appelle la fonction <code>liste</code>. <code>&lt;str:capteur_id&gt;</code> est un <b>paramètre dynamique d'URL</b> : tout texte mis ici (ex: <code>/capteur/B8A5F3569EFF/</code>) est capturé et passé en argument à la fonction <code>detail(request, capteur_id)</code>. Le paramètre <code>name="..."</code> permet de référencer ces URLs depuis les templates avec <code>{% url 'liste' %}</code> sans jamais écrire l'URL en dur — si on change le chemin plus tard, tous les templates restent corrects automatiquement.</p>
+</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="settings">
+<h2>6. settings.py — la configuration du projet</h2>
+<div class="ligne"><div class="no">29-39</div><div class="body">
+<code class="src">ALLOWED_HOSTS = ["*", "localhost"]
+INSTALLED_APPS = [
+    "django.contrib.admin", "django.contrib.auth",
+    "django.contrib.contenttypes", "django.contrib.sessions",
+    "django.contrib.messages", "django.contrib.staticfiles",
+    "capteurs",
+]</code>
+<div class="exp"><code>ALLOWED_HOSTS</code> liste les noms de domaine/IP autorisés à servir le site (sécurité anti "Host header attack"). Le <code>"*"</code> autorise tout — pratique en développement mais <b>jamais recommandé en production</b> (point à mentionner si le prof demande "des limites/améliorations possibles"). <code>INSTALLED_APPS</code> énumère toutes les applications activées : les 5 premières sont fournies par Django lui-même (admin, authentification, types de contenu, sessions, messages flash, fichiers statiques), et <code>"capteurs"</code> est notre propre application.</div>
+</div></div>
+
+<div class="ligne imp"><div class="no">74-83</div><div class="body">
+<code class="src">DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": "sae204",
+        "USER": 'sae',
+        "PASSWORD": 'toto',
+        "HOST": '10.252.14.76',
+        "PORT": '3306',
+    }
+}</code>
+<div class="exp">C'est ici que Django sait <b>où</b> et <b>comment</b> se connecter à la même base MySQL que <code>collecte.py</code> remplit. <code>ENGINE</code> précise qu'on utilise un connecteur MySQL (et non SQLite/PostgreSQL). <code>HOST</code> est une IP du réseau local de l'IUT — c'est pour ça que le site ne marche que connecté à ce réseau (ou en VPN). Le port <code>3306</code> est le port standard MySQL. <b>C'est cette configuration qui fait le lien direct entre Django et les mêmes tables <code>capteur</code>/<code>mesure</code> que <code>collecte.py</code> remplit</b> — les deux programmes parlent à la même base, au même endroit.</div>
+</div></div>
+</section>
+
+<!-- ============================================================ -->
+<section id="templates">
+<h2>7. Templates HTML — l'affichage côté navigateur</h2>
+
+<h3>7.1 — base.html : le squelette commun</h3>
+<div class="ligne"><div class="no">1-15</div><div class="body">
+<code class="src">{% load static %}
+&lt;!DOCTYPE html&gt;
+&lt;html lang="fr"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    {% if refresh %}&lt;meta http-equiv="refresh" content="{{ refresh }}"&gt;{% endif %}
+    &lt;script src="https://cdn.jsdelivr.net/npm/chart.js"&gt;&lt;/script&gt;
+    &lt;link rel="stylesheet" href="{% static 'capteurs/style.css' %}"&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    {% block contenu %}{% endblock %}
+&lt;/body&gt;
+&lt;/html&gt;</code>
+<div class="exp"><code>{% load static %}</code> active le système de gestion des fichiers statiques de Django (CSS/JS/images). <b>Le meta viewport</b> est ce qui rend le site adaptatif mobile : sans lui, les téléphones afficheraient le site comme une miniature de page bureau. <code>{% if refresh %}</code> : si l'utilisateur a réglé un rafraîchissement automatique (champ "Refresh auto (s)" dans le formulaire de filtres), on injecte une balise <code>meta http-equiv="refresh"</code> qui dit au navigateur de recharger toute la page après N secondes — utile pour suivre les températures en quasi temps réel sans JavaScript compliqué. Chart.js est chargé depuis un CDN externe (pas besoin de l'installer localement). <code>{% block contenu %}{% endblock %}</code> est un <b>emplacement vide</b> que les templates enfants (<code>liste.html</code>, <code>detail.html</code>) viennent remplir grâce à <code>{% extends "capteurs/base.html" %}</code> — c'est l'héritage de templates Django, qui évite de réécrire le head/body partout.</div>
+</div></div>
+
+<h3>7.2 — liste.html : formulaire de filtres, statistiques, graphique, tableau</h3>
+<div class="ligne imp"><div class="no">9-38</div><div class="body">
+<code class="src">&lt;form class="filtres" method="get"&gt;
+    &lt;input type="text" name="capteur" value="{{ f_capteur }}"&gt;
+    &lt;input type="date" name="date_debut" value="{{ f_debut }}"&gt;
+    ...
+    &lt;input type="hidden" name="tri" value="{{ tri }}"&gt;
+    &lt;input type="hidden" name="ordre" value="{{ ordre }}"&gt;
+    &lt;button type="submit"&gt;Filtrer&lt;/button&gt;
+&lt;/form&gt;</code>
+<div class="exp"><code>method="get"</code> est volontaire (pas "post") : ça transforme chaque champ en <b>paramètre d'URL</b> (<code>?capteur=...&amp;date_debut=...</code>), ce qui permet de <b>partager/recharger/mettre en favori</b> une recherche filtrée, et c'est exactement ce que <code>request.GET.get(...)</code> lit côté <code>views.py</code>. Les champs <code>value="{{ f_capteur }}"</code> réaffichent la valeur déjà tapée (pour que le formulaire ne se vide pas après soumission). Les deux <code>type="hidden"</code> conservent le tri actuel même quand on change un filtre, pour ne pas perdre l'état de tri en cours de route.</div>
+</div></div>
+
+<div class="ligne"><div class="no">102-132</div><div class="body">
+<code class="src">&lt;script&gt;
+const labels  = {{ labels|safe }};
+const valeurs = {{ valeurs|safe }};
+new Chart(document.getElementById('graphe'), {
+    type: 'line',
+    data: { labels: labels, datasets: [{ data: valeurs, ... }] },
+    ...
+});
+&lt;/script&gt;</code>
+<div class="exp">C'est ici que la donnée préparée côté Python (<code>json.dumps(labels)</code> dans <code>views.py</code>) devient un <b>vrai tableau JavaScript</b> directement dans le HTML. Le filtre <code>|safe</code> dit à Django "n'échappe pas ce texte" — normalement Django protège automatiquement contre le XSS en transformant les caractères spéciaux, mais ici on <b>veut</b> que les crochets <code>[...]</code> du JSON restent intacts pour être interprétés comme du JS valide (sans danger ici car c'est nous-mêmes qui générons ce JSON côté serveur, pas une entrée utilisateur brute). <code>new Chart(...)</code> appelle la librairie Chart.js pour dessiner un graphique en ligne dans le <code>&lt;canvas id="graphe"&gt;</code>.</div>
+</div></div>
+
+<h3>7.3 — _th.html : en-tête de colonne triable (template inclus/réutilisé)</h3>
+<div class="ligne"><div class="no">1-13</div><div class="body">
+<code class="src">{% spaceless %}
+&lt;th&gt;
+  {% if tri == col %}
+    {% if ordre == "asc" %}
+      &lt;a href="?...&amp;tri={{ col }}&amp;ordre=desc"&gt;{{ titre }} &uarr;&lt;/a&gt;
+    {% else %}
+      &lt;a href="?...&amp;tri={{ col }}&amp;ordre=asc"&gt;{{ titre }} &darr;&lt;/a&gt;
+    {% endif %}
+  {% else %}
+    &lt;a href="?...&amp;tri={{ col }}&amp;ordre=desc"&gt;{{ titre }}&lt;/a&gt;
+  {% endif %}
+&lt;/th&gt;
+{% endspaceless %}</code>
+<div class="exp">Ce petit fichier est <b>inclus 5 fois</b> dans <code>liste.html</code> (une fois par colonne) via <code>{% include "capteurs/_th.html" with col="..." titre="..." %}</code> — ça évite de copier-coller le même bloc HTML 5 fois. Logique : si la colonne actuelle (<code>col</code>) est celle déjà triée (<code>tri == col</code>), on affiche une flèche (↑ ou ↓) et un lien qui <b>inverse</b> le sens du tri au prochain clic. Sinon, on affiche juste le titre cliquable qui, au clic, trie cette colonne en <code>desc</code> par défaut. Tous les autres filtres actifs (<code>f_capteur</code>, <code>f_debut</code>...) sont systématiquement réinjectés dans le lien pour ne pas les perdre en changeant de tri.</div>
+</div></div>
+
+<h3>7.4 — detail.html : édition et suppression d'un capteur</h3>
+<div class="ligne imp"><div class="no">10-34</div><div class="body">
+<code class="src">&lt;form method="post"&gt;
+    {% csrf_token %}
+    &lt;input type="text" value="{{ capteur.id }}" disabled&gt;
+    &lt;input type="text" name="nom" value="{{ capteur.nom }}" required&gt;
+    &lt;button type="submit"&gt;Enregistrer&lt;/button&gt;
+    &lt;button type="submit" name="supprimer" class="btn-danger"
+            onclick="return confirm('Supprimer ce capteur ET toutes ses mesures ?')"&gt;
+        Supprimer
+    &lt;/button&gt;
+&lt;/form&gt;</code>
+<div class="exp"><code>method="post"</code> ici (contrairement à <code>liste.html</code>) car ce formulaire <b>modifie des données</b> côté serveur — convention HTTP : GET pour lire, POST pour écrire. <code>{% csrf_token %}</code> insère un jeton de sécurité <b>obligatoire</b> en Django pour tout formulaire POST : il protège contre les attaques CSRF (un site malveillant qui forgerait une fausse requête vers ce formulaire à l'insu de l'utilisateur) — sans ce tag, Django <b>refuse</b> la requête (erreur 403). Les champs <code>disabled</code> (ID, pièce) sont affichés mais <b>non modifiables</b> et donc <b>non envoyés</b> au serveur — leur protection est donc garantie côté navigateur ET côté serveur (puisque <code>views.py</code> ne lit jamais ces champs dans <code>request.POST</code>). Le bouton "Supprimer" a un attribut <code>name="supprimer"</code> distinct du bouton "Enregistrer" : c'est ce qui permet à <code>views.py</code> de savoir lequel des deux boutons a été cliqué via <code>"supprimer" in request.POST</code>. <code>onclick="return confirm(...)"</code> ajoute une boîte de dialogue JavaScript de confirmation <b>avant même l'envoi du formulaire</b> — si l'utilisateur clique "Annuler", <code>confirm()</code> renvoie <code>false</code> et le formulaire n'est jamais soumis.</div>
+</div></div>
+</section>
+
+<!-- ============================================================ -->
+<section id="sql">
+<h2>8. Fiche SQL — l'équivalent brut de chaque requête ORM (pour l'examen)</h2>
+<p class="muted">Le prof a dit qu'il voulait toutes les commandes SQL de recherche/filtre. Voici la traduction exacte ORM Django → SQL réel pour les deux projets.</p>
+
+<h3>8.1 — Requêtes utilisées par collecte.py (SQL brut, déjà écrit à la main)</h3>
+<table>
+<tr><th>Étape</th><th>Requête SQL</th><th>But</th></tr>
+<tr><td>Vérifier l'existence du capteur</td><td><code>SELECT id FROM capteur WHERE id = '12A6B8AF6CD3';</code></td><td>Savoir si on doit créer le capteur avant d'insérer la mesure</td></tr>
+<tr><td>Créer un nouveau capteur</td><td><code>INSERT INTO capteur (id, nom, piece, emplacement) VALUES ('12A6B8AF6CD3','12A6B8AF6CD3','sejour','sejour');</code></td><td>Ajouter le capteur s'il est inconnu</td></tr>
+<tr><td>Insérer une mesure</td><td><code>INSERT INTO mesure (capteur_id, timestamp, temperature) VALUES ('12A6B8AF6CD3','2026-06-15 12:13:14',26.35);</code></td><td>Enregistrer la donnée reçue par MQTT</td></tr>
+</table>
+
+<h3>8.2 — Équivalent SQL des filtres Django (views.py)</h3>
+<table>
+<tr><th>Code Django (ORM)</th><th>SQL équivalent généré</th></tr>
+<tr><td><code>Mesure.objects.select_related("capteur").all()</code></td><td><code>SELECT mesure.*, capteur.* FROM mesure INNER JOIN capteur ON mesure.capteur_id = capteur.id;</code></td></tr>
+<tr><td><code>.filter(Q(capteur__id__icontains=x) | Q(capteur__nom__icontains=x) | Q(capteur__piece__icontains=x))</code></td><td><code>... WHERE capteur.id LIKE '%x%' OR capteur.nom LIKE '%x%' OR capteur.piece LIKE '%x%';</code></td></tr>
+<tr><td><code>.filter(timestamp__date__gte=date_debut)</code></td><td><code>... WHERE DATE(timestamp) >= 'date_debut';</code></td></tr>
+<tr><td><code>.filter(timestamp__date__lte=date_fin)</code></td><td><code>... WHERE DATE(timestamp) <= 'date_fin';</code></td></tr>
+<tr><td><code>.filter(temperature__gte=temp_min)</code></td><td><code>... WHERE temperature >= temp_min;</code></td></tr>
+<tr><td><code>.filter(temperature__lte=temp_max)</code></td><td><code>... WHERE temperature <= temp_max;</code></td></tr>
+<tr><td><code>.order_by("-timestamp")</code></td><td><code>... ORDER BY timestamp DESC;</code></td></tr>
+<tr><td><code>.order_by("capteur__id")</code></td><td><code>... ORDER BY capteur.id ASC;</code></td></tr>
+<tr><td><code>.aggregate(m=Avg("temperature"))</code></td><td><code>SELECT AVG(temperature) AS m FROM mesure WHERE ...;</code></td></tr>
+<tr><td><code>.count()</code></td><td><code>SELECT COUNT(*) FROM mesure WHERE ...;</code></td></tr>
+<tr><td><code>mesures[:500]</code></td><td><code>... LIMIT 500;</code></td></tr>
+<tr><td><code>get_object_or_404(Capteur, id=capteur_id)</code></td><td><code>SELECT * FROM capteur WHERE id = 'capteur_id' LIMIT 1;</code> (404 si vide)</td></tr>
+<tr><td><code>capteur.delete()</code></td><td><code>DELETE FROM mesure WHERE capteur_id = 'X'; DELETE FROM capteur WHERE id = 'X';</code> (CASCADE auto)</td></tr>
+<tr><td><code>capteur.save(update_fields=["nom","emplacement"])</code></td><td><code>UPDATE capteur SET nom = '...', emplacement = '...' WHERE id = 'X';</code></td></tr>
+<tr><td>Exemple combiné complet (page filtrée typique)</td><td><code>SELECT mesure.*, capteur.* FROM mesure JOIN capteur ON mesure.capteur_id = capteur.id WHERE capteur.id LIKE '%B8A5%' AND DATE(timestamp) >= '2026-06-01' AND temperature >= 18 ORDER BY timestamp DESC LIMIT 500;</code></td></tr>
+</table>
+
+<div class="callout">
+<b>Exemple exact demandé par le prof</b> (<code>SELECT * FROM capteur WHERE id = ...</code>) correspond précisément à l'étape 1 de <code>inserer_mesure()</code> dans <code>collecte.py</code>, et également à <code>get_object_or_404(Capteur, id=capteur_id)</code> côté Django — les deux font la même chose : vérifier si un capteur précis existe avant d'agir sur lui.
+</div>
+</section>
+
+</main>
+
+<button class="top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Haut de page">↑</button>
+
+</body>
+</html>
